@@ -1,0 +1,133 @@
+#!/usr/bin/perl -w
+
+use Getopt::Std;
+
+$0=~/.*\/(.*)/;
+
+
+#======================
+# Read arguments.
+#======================
+my %options = ();
+
+getopts("r:c:b:k:",\%options);
+
+die "\nUsage: $1 [-r nrow] [-c ncol] [-b blk] [-k coll,col2,..] <txt file> \n\n" if @ARGV!=1;
+
+
+# minimum number of rows to be interested
+my $minrow = 2; 
+
+if ( defined $options{r} ) {
+    $minrow = $options{r};
+}
+
+# minimum number of columns to be interested
+my $mincol = 2;
+if ( defined $options{c} ) {
+    $mincol = $options{c};
+}
+
+# the picked block
+my $picked = 0;
+if ( defined $options{b} ) {
+    $picked = $options{b};
+}
+
+# columns to be output
+my @col_nums = ();
+
+if (defined $options{k}) {
+    @col_nums = split(",", $options{k});
+}
+
+
+#======================
+# Main           
+#======================
+
+# Read file content
+my @contents = `cat $ARGV[0]`;
+chomp @contents;
+
+# Add a blank line to file conetent for simpler code
+push @contents," ";
+
+
+#Initialize some parameters
+my $block   = 0;
+my $ncol    = 0;
+my $inblock = 0;
+my @table   = ();
+
+
+#Process file
+for (@contents) {
+
+    my @items = split(" ", $_);
+
+    # If new row's number of columns changes
+    if (@items != $ncol) {
+        
+        # See if the current table is worth printing
+        if ($ncol>= $mincol && @table >= $minrow ) {
+
+            # if -b option is triggered and only print that block
+            if (defined $options{b}) {
+
+                if ($picked == $block ) {
+                    print_table(\@table, \@col_nums);
+                }
+
+            } 
+
+            # if not -b option then print every block to asssist block picking
+            else {
+
+                print "$block\n";
+                print_table(\@table, \@col_nums);
+            }
+
+            $block = $block + 1;
+        }
+
+        # Clear table
+        @table = ();
+
+        # Push new row to table
+        push @table, [@items];
+
+        # Record current number of columns
+        $ncol = @items;
+
+    } 
+
+    # If new row's # of col still the same
+    # push row to table
+    else {
+        push @table, [@items];
+    }
+}
+
+
+#==============================
+# Print table subroutine
+#==============================
+sub print_table {
+
+    my ($tabref, $nc_ref) = @_;
+
+    for (@$tabref) {
+
+        my $row_ref = $_;
+
+        if (@$nc_ref >0 ) {
+            for (@$nc_ref) { print ${$row_ref}[$_-1]." "; }
+        } else {
+            for (@{$row_ref}) { print $_." "; }
+        }
+
+        print "\n";
+    }
+}
+
