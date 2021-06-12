@@ -12,7 +12,7 @@ my %options = ();
 
 getopts("r:c:b:k:",\%options);
 
-die "\nUsage: $1 [-r nrow] [-c ncol] [-b blk] [-k coll,col2,..] <txt file> \n\n" if @ARGV!=1;
+die "\nUsage: $1 [-r nrow] [-c ncol] [-b blk] [-k coll,col2,..] <txt file> \n\n" if @ARGV>1;
 
 
 # minimum number of rows to be interested
@@ -47,7 +47,7 @@ if (defined $options{k}) {
 #======================
 
 # Read file content
-my @contents = `cat $ARGV[0]`;
+my @contents = <>;
 chomp @contents;
 
 # Add a blank line to file conetent for simpler code
