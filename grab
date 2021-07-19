@@ -10,7 +10,7 @@ $0=~/.*\/(.*)/;
 #======================
 my %options = ();
 
-getopts("r:c:b:k:",\%options);
+getopts("r:c:b:k:g",\%options);
 
 die "\nUsage: $1 [-r nrow] [-c ncol] [-b blk] [-k coll,col2,..] <txt file> \n\n" if @ARGV>1;
 
@@ -55,47 +55,41 @@ push @contents," ";
 
 
 #Initialize some parameters
-my $block   = 0;
+my $blk_num = 0;
 my $ncol    = 0;
-my $inblock = 0;
-my @table   = ();
+my @block   = ();
+my @block_list = ();
+my @col_ref_list = ();
 
 
 #Process file
 for (@contents) {
 
+    # split current line into columns 
     my @items = split(" ", $_);
 
-    # If new row's number of columns changes
+    # If new row's number of columns is different from
+    # previous row that means it's the beginning of a new block
     if (@items != $ncol) {
         
-        # See if the current table is worth printing
-        if ($ncol>= $mincol && @table >= $minrow ) {
+        # See if the current block is worth printing
+        if ($ncol>= $mincol && @block >= $minrow ) {
 
-            # if -b option is triggered and only print that block
-            if (defined $options{b}) {
+            # print "$blk_num\n";
+            # print_block(\@block, \@col_nums);
 
-                if ($picked == $block ) {
-                    print_table(\@table, \@col_nums);
-                }
+            # push block to block_list
+            push @block_list, [@block]; 
 
-            } 
-
-            # if not -b option then print every block to asssist block picking
-            else {
-
-                print "$block\n";
-                print_table(\@table, \@col_nums);
-            }
-
-            $block = $block + 1;
+            #update block number
+            $blk_num = $blk_num + 1;
         }
 
-        # Clear table
-        @table = ();
+        # Clear block for a new block
+        @block = ();
 
-        # Push new row to table
-        push @table, [@items];
+        # Push first row to the new block
+        push @block, [@items];
 
         # Record current number of columns
         $ncol = @items;
@@ -103,17 +97,30 @@ for (@contents) {
     } 
 
     # If new row's # of col still the same
-    # push row to table
+    # push new row to the block
     else {
-        push @table, [@items];
+        push @block, [@items];
+    }
+}
+
+
+# Print Blocks
+if (defined $options{b}) {
+    print_block($block_list[$picked],\@col_nums);
+}
+else {
+    for (my $i=0; $i<=$blk_num-1; $i++) {
+        my $blk_ref = $block_list[$i];
+        print "$i\n";
+        print_block(\@$blk_ref,[]);
     }
 }
 
 
 #==============================
-# Print table subroutine
+# Print block subroutine
 #==============================
-sub print_table {
+sub print_block {
 
     my ($tabref, $nc_ref) = @_;
 
