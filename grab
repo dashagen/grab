@@ -43,7 +43,7 @@ if (defined $options{k}) {
 
 
 #======================
-# Main           
+# Initialization 
 #======================
 
 # Read file content
@@ -59,10 +59,11 @@ my $blk_num = 0;
 my $ncol    = 0;
 my @block   = ();
 my @block_list = ();
-my @col_ref_list = ();
 
 
+#======================
 #Process file
+#======================
 for (@contents) {
 
     # split current line into columns 
@@ -74,9 +75,6 @@ for (@contents) {
         
         # See if the current block is worth printing
         if ($ncol>= $mincol && @block >= $minrow ) {
-
-            # print "$blk_num\n";
-            # print_block(\@block, \@col_nums);
 
             # push block to block_list
             push @block_list, [@block]; 
@@ -104,7 +102,9 @@ for (@contents) {
 }
 
 
+#======================
 # Print Blocks
+#======================
 if (defined $options{b}) {
     print_block($block_list[$picked],\@col_nums);
 }
