@@ -105,9 +105,19 @@ for (@contents) {
 #======================
 # Print Blocks
 #======================
+
+#print the designated block
 if (defined $options{b}) {
     print_block($block_list[$picked],\@col_nums);
 }
+
+#print the block with most rows
+elsif (defined $options{g}) {
+    my @new_list = sort { scalar(@$b) <=> scalar(@$a) } @block_list;
+    print_block($new_list[0],\@col_nums);
+}
+
+#print all the blocks for inspection
 else {
     for (my $i=0; $i<=$blk_num-1; $i++) {
         my $blk_ref = $block_list[$i];
